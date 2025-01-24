@@ -92,6 +92,7 @@ public class Duke {
         System.out.println("Hello! I'm " + name + "\n");
         ArrayList<Task> list = new ArrayList<>();
         Scanner scan = new Scanner(System.in);
+        System.out.println("What can I do for you?");
         while (scan.hasNextLine()) {
             String input = scan.nextLine();
 
@@ -115,7 +116,7 @@ public class Duke {
                         System.out.println("Invalid task number.");
                     }
                 } catch (Exception e) {
-                    System.out.println("Invalid input. Use: mark <task_number>");
+                    System.out.println("OOPS!!! Invalid input. Use: mark <task_number>");
                 }
             } else if (input.startsWith("unmark")) {
                 try {
@@ -128,14 +129,18 @@ public class Duke {
                         System.out.println("Invalid task number.");
                     }
                 } catch (Exception e) {
-                    System.out.println("Invalid input. Use: unmark <task_number>");
+                    System.out.println("OOPS!!! Invalid input. Use: unmark <task_number>");
                 }
             } else if (input.startsWith("todo")) {
-                String description = input.substring(5).trim();
-                list.add(new ToDo(description));
-                System.out.println("Got it. I've added this task:");
-                System.out.println("  [T][ ] " + description);
-                System.out.println("Now you have " + list.size() + " tasks in the list.");
+                try {
+                    String description = input.substring(5).trim();
+                    list.add(new ToDo(description));
+                    System.out.println("Got it. I've added this task:");
+                    System.out.println("  [T][ ] " + description);
+                    System.out.println("Now you have " + list.size() + " tasks in the list.");
+                } catch (Exception e) {
+                    System.out.println("OOPS!!! Invalid description of a todo.");
+                }
             } else if (input.startsWith("deadline")) {
                 try {
                     String[] parts = input.substring(9).split(" /by ");
@@ -146,7 +151,7 @@ public class Duke {
                     System.out.println("  [D][ ] " + description + " (by: " + by + ")");
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                 } catch (Exception e) {
-                    System.out.println("Invalid format. Use: deadline <description> /by <time>");
+                    System.out.println("OOPS!!! Invalid format. Use: deadline <description> /by <time>");
                 }
             } else if (input.startsWith("event")) {
                 try {
@@ -159,13 +164,14 @@ public class Duke {
                     System.out.println("  [E][ ] " + description + " (from: " + from + " to: " + to + ")");
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                 } catch (Exception e) {
-                    System.out.println("Invalid format. Use: event <description> /from <time> /to <time>");
+                    System.out.println("OOPS!!! Invalid format. Use: event <description> /from <time> /to <time>");
                 }
             } else {
-                System.out.println("Invalid command.");
+                System.out.println("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
 
             System.out.println("____________________________________________________________");
+            System.out.println("What can I do for you?");
         }
 
         System.out.println("Bye. Hope to see you again soon!");
