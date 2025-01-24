@@ -166,6 +166,20 @@ public class Duke {
                 } catch (Exception e) {
                     System.out.println("OOPS!!! Invalid format. Use: event <description> /from <time> /to <time>");
                 }
+            } else if (input.startsWith("delete")) {
+                try {
+                    int taskNumber = Integer.parseInt(input.split(" ")[1]) - 1;
+                    if (taskNumber >= 0 && taskNumber < list.size()) {
+                        Task removedTask = list.remove(taskNumber);
+                        System.out.println("Noted. I've removed this task:");
+                        System.out.println("  " + removedTask);
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+                    } else {
+                        System.out.println("Invalid task number.");
+                    }
+                } catch (Exception e) {
+                    System.out.println("OOPS!!! Invalid input. Use: delete <task_number>");
+                }
             } else {
                 System.out.println("OOPS!!! I'm sorry, but I don't know what that means :-(");
             }
