@@ -1,6 +1,17 @@
+import java.io.File;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
 import java.util.ArrayList;
+import java.util.List;
 import java.util.Scanner;
+
 public class Duke {
+
+    private static final String DATA_FILE_PATH = "./data/duke.txt";
+
     static abstract class Task {
         String description;
         boolean isDone;
@@ -24,6 +35,10 @@ public class Duke {
         public String toString() {
             String status = isDone ? "[X]" : "[ ]";
             return "[" + getTaskType() + "]" + status + " " + description;
+        }
+
+        public String toFileString() {
+            return String.format("%s | %d | %s", getTaskType(), isDone ? 1 : 0, description);
         }
     }
 
@@ -55,6 +70,11 @@ public class Duke {
         public String toString() {
             return super.toString() + " (by: " + by + ")";
         }
+
+        @Override
+        public String toFileString() {
+            return super.toFileString() + " | " + by;
+        }
     }
 
     static class Event extends Task {
@@ -76,6 +96,11 @@ public class Duke {
         public String toString() {
             return super.toString() + " (from: " + from + " to: " + to + ")";
         }
+
+        @Override
+        public String toFileString() {
+            return super.toFileString() + " | " + from + " | " + to;
+        }
     }
 
     public static void main(String[] args) {
@@ -83,6 +108,10 @@ public class Duke {
 
         System.out.println("Hello! I'm " + name + "\n");
         ArrayList<Task> list = new ArrayList<>();
+
+        // Load tasks from file
+        loadTasksFromFile(list);
+
         Scanner scan = new Scanner(System.in);
         System.out.println("What can I do for you?");
         while (scan.hasNextLine()) {
@@ -104,6 +133,7 @@ public class Duke {
                         list.get(taskNumber).markDone();
                         System.out.println("Nice! I've marked this task as done:");
                         System.out.println("  " + list.get(taskNumber));
+                        saveTasksToFile(list); // Save changes
                     } else {
                         System.out.println("Invalid task number.");
                     }
@@ -117,6 +147,7 @@ public class Duke {
                         list.get(taskNumber).markUndone();
                         System.out.println("OK, I've marked this task as not done yet:");
                         System.out.println("  " + list.get(taskNumber));
+                        saveTasksToFile(list); // Save changes
                     } else {
                         System.out.println("Invalid task number.");
                     }
@@ -126,10 +157,12 @@ public class Duke {
             } else if (input.startsWith("todo")) {
                 try {
                     String description = input.substring(5).trim();
-                    list.add(new ToDo(description));
+                    Task newTask = new ToDo(description);
+                    list.add(newTask);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  [T][ ] " + description);
+                    System.out.println("  " + newTask);
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
+                    saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
                     System.out.println("OOPS!!! Invalid description of a todo.");
                 }
@@ -138,10 +171,12 @@ public class Duke {
                     String[] parts = input.substring(9).split(" /by ");
                     String description = parts[0].trim();
                     String by = parts[1].trim();
-                    list.add(new Deadline(description, by));
+                    Task newTask = new Deadline(description, by);
+                    list.add(newTask);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  [D][ ] " + description + " (by: " + by + ")");
+                    System.out.println("  " + newTask);
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
+                    saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
                     System.out.println("OOPS!!! Invalid format. Use: deadline <description> /by <time>");
                 }
@@ -151,10 +186,12 @@ public class Duke {
                     String description = parts[0].trim();
                     String from = parts[1].trim();
                     String to = parts[2].trim();
-                    list.add(new Event(description, from, to));
+                    Task newTask = new Event(description, from, to);
+                    list.add(newTask);
                     System.out.println("Got it. I've added this task:");
-                    System.out.println("  [E][ ] " + description + " (from: " + from + " to: " + to + ")");
+                    System.out.println("  " + newTask);
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
+                    saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
                     System.out.println("OOPS!!! Invalid format. Use: event <description> /from <time> /to <time>");
                 }
@@ -166,6 +203,7 @@ public class Duke {
                         System.out.println("Noted. I've removed this task:");
                         System.out.println("  " + removedTask);
                         System.out.println("Now you have " + list.size() + " tasks in the list.");
+                        saveTasksToFile(list); // Save changes
                     } else {
                         System.out.println("Invalid task number.");
                     }
@@ -182,5 +220,70 @@ public class Duke {
 
         System.out.println("Bye. Hope to see you again soon!");
 
+    }
+
+    private static void loadTasksFromFile(ArrayList<Task> list) {
+        Path filePath = Paths.get(DATA_FILE_PATH);
+        if (!Files.exists(filePath)) {
+            System.out.println("No existing data file found. Starting with an empty task list.");
+            return;
+        }
+
+        try {
+            List<String> lines = Files.readAllLines(filePath);
+            for (String line : lines) {
+                String[] parts = line.split(" \\| ");
+                String taskType = parts[0];
+                int isDone = Integer.parseInt(parts[1]);
+                String description = parts[2];
+
+                Task task = null;
+                switch (taskType) {
+                    case "T":
+                        task = new ToDo(description);
+                        break;
+                    case "D":
+                        String by = parts[3];
+                        task = new Deadline(description, by);
+                        break;
+                    case "E":
+                        String from = parts[3];
+                        String to = parts[4];
+                        task = new Event(description, from, to);
+                        break;
+                }
+
+                if (task != null) {
+                    if (isDone == 1) {
+                        task.markDone();
+                    }
+                    list.add(task);
+                }
+
+            }
+            System.out.println("Tasks loaded from " + DATA_FILE_PATH);
+        } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
+            System.out.println("Error loading tasks from file: " + e.getMessage());
+        }
+    }
+
+
+    private static void saveTasksToFile(ArrayList<Task> list) {
+        Path filePath = Paths.get(DATA_FILE_PATH);
+        Path parentDir = filePath.getParent();
+
+        try {
+            if (parentDir != null && !Files.exists(parentDir)) {
+                Files.createDirectories(parentDir);
+            }
+
+            try (FileWriter writer = new FileWriter(filePath.toFile())) {
+                for (Task task : list) {
+                    writer.write(task.toFileString() + System.lineSeparator());
+                }
+            }
+        } catch (IOException e) {
+            System.out.println("Error saving tasks to file: " + e.getMessage());
+        }
     }
 }
