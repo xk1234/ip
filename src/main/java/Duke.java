@@ -1,8 +1,13 @@
+import java.io.File;
 import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
+import java.time.format.DateTimeParseException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Scanner;
@@ -53,9 +58,9 @@ public class Duke {
     }
 
     static class Deadline extends Task {
-        String by;
+        LocalDateTime by;
 
-        public Deadline(String description, String by) {
+        public Deadline(String description, LocalDateTime by) {
             super(description);
             this.by = by;
         }
@@ -67,20 +72,23 @@ public class Duke {
 
         @Override
         public String toString() {
-            return super.toString() + " (by: " + by + ")";
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy HHmm");
+            String formattedDate = by.format(formatter);
+            return super.toString() + " (by: " + formattedDate + ")";
         }
 
         @Override
         public String toFileString() {
-            return super.toFileString() + " | " + by;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+            return super.toFileString() + " | " + by.format(formatter);
         }
     }
 
     static class Event extends Task {
-        String from;
-        String to;
+        LocalDateTime from;
+        LocalDateTime to;
 
-        public Event(String description, String from, String to) {
+        public Event(String description, LocalDateTime from, LocalDateTime to) {
             super(description);
             this.from = from;
             this.to = to;
@@ -93,12 +101,17 @@ public class Duke {
 
         @Override
         public String toString() {
-            return super.toString() + " (from: " + from + " to: " + to + ")";
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy HHmm");
+            String formattedFrom = from.format(formatter);
+            String formattedTo = to.format(formatter);
+            return super.toString() + " (from: " + formattedFrom + " to: " + formattedTo + ")";
         }
+
 
         @Override
         public String toFileString() {
-            return super.toFileString() + " | " + from + " | " + to;
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+            return super.toFileString() + " | " + from.format(formatter) + " | " + to.format(formatter);
         }
     }
 
@@ -169,7 +182,13 @@ public class Duke {
                 try {
                     String[] parts = input.substring(9).split(" /by ");
                     String description = parts[0].trim();
-                    String by = parts[1].trim();
+                    String byString = parts[1].trim();
+                    LocalDateTime by = parseDateTime(byString);
+                    if (by == null) {
+                        System.out.println("OOPS!!! Invalid date/time format. Use: deadline <description> /by <yyyy-MM-dd HHmm>");
+                        continue;
+                    }
+
                     Task newTask = new Deadline(description, by);
                     list.add(newTask);
                     System.out.println("Got it. I've added this task:");
@@ -177,14 +196,21 @@ public class Duke {
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                     saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format. Use: deadline <description> /by <time>");
+                    System.out.println("OOPS!!! Invalid format. Use: deadline <description> /by <yyyy-MM-dd HHmm>");
                 }
             } else if (input.startsWith("event")) {
                 try {
                     String[] parts = input.substring(6).split(" /from | /to ");
                     String description = parts[0].trim();
-                    String from = parts[1].trim();
-                    String to = parts[2].trim();
+                    String fromString = parts[1].trim();
+                    String toString = parts[2].trim();
+                    LocalDateTime from = parseDateTime(fromString);
+                    LocalDateTime to = parseDateTime(toString);
+                    if (from == null || to == null) {
+                        System.out.println("OOPS!!! Invalid date/time format. Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+                        continue;
+                    }
+
                     Task newTask = new Event(description, from, to);
                     list.add(newTask);
                     System.out.println("Got it. I've added this task:");
@@ -192,7 +218,7 @@ public class Duke {
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                     saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format. Use: event <description> /from <time> /to <time>");
+                    System.out.println("OOPS!!! Invalid format. Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
                 }
             } else if (input.startsWith("delete")) {
                 try {
@@ -221,6 +247,16 @@ public class Duke {
 
     }
 
+    private static LocalDateTime parseDateTime(String dateTimeString) {
+        try {
+            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
+            return LocalDateTime.parse(dateTimeString, formatter);
+        } catch (DateTimeParseException e) {
+            return null;
+        }
+    }
+
+
     private static void loadTasksFromFile(ArrayList<Task> list) {
         Path filePath = Paths.get(DATA_FILE_PATH);
         if (!Files.exists(filePath)) {
@@ -242,13 +278,20 @@ public class Duke {
                         task = new ToDo(description);
                         break;
                     case "D":
-                        String by = parts[3];
-                        task = new Deadline(description, by);
+                        String byString = parts[3];
+                        LocalDateTime by = parseDateTime(byString);
+                        if(by != null){
+                            task = new Deadline(description, by);
+                        }
                         break;
                     case "E":
-                        String from = parts[3];
-                        String to = parts[4];
-                        task = new Event(description, from, to);
+                        String fromString = parts[3];
+                        String toString = parts[4];
+                        LocalDateTime from = parseDateTime(fromString);
+                        LocalDateTime to = parseDateTime(toString);
+                        if(from != null && to != null){
+                            task = new Event(description, from, to);
+                        }
                         break;
                 }
 
