@@ -3,10 +3,19 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
-
+/**
+ * Loading and saving tasks to a persistent data file.
+ */
 class Storage {
+    /** Number of connections to this database */
     private static final String DATA_FILE_PATH = "./data/duke.txt";
 
+    /**
+     * Returns an empty list if the file does not exist or if loading fails.
+     * Loads tasks from the data file.
+     *
+     * @return An ArrayList of Task objects loaded from the file.
+     */
     public ArrayList<Task> loadTasks() {
         ArrayList<Task> list = new ArrayList<>();
         java.nio.file.Path filePath = java.nio.file.Paths.get(DATA_FILE_PATH);
@@ -61,6 +70,12 @@ class Storage {
     }
 
 
+    /**
+     * Saves the tasks to the data file.
+     * Saves all tasks in the provided TaskList to the persistent data file.
+     *
+     * @param taskList TaskList containing the tasks to be saved.
+     */
     public void saveTasks(TaskList taskList) {
         java.nio.file.Path filePath = java.nio.file.Paths.get(DATA_FILE_PATH);
         java.nio.file.Path parentDir = filePath.getParent();
