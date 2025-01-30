@@ -19,7 +19,7 @@ public class Duke {
         }
         boolean isExit = false;
         while (!isExit) {
-            String commandLine = ui.readCommand(); // This now includes lines around "What can I do for you?"
+            String commandLine = ui.readCommand();
             String[] parts = Parser.parseCommand(commandLine);
             String command = parts[0];
             String arguments = parts.length > 1 ? parts[1] : "";
@@ -50,7 +50,7 @@ public class Duke {
                     handleEvent(arguments, commandLine);
                     break;
                 case "delete":
-                    handleDelete(arguments, commandLine);
+                    handleDelete(arguments);
                     break;
                 default:
                     ui.showInvalidCommandError(commandLine);
@@ -138,7 +138,7 @@ public class Duke {
         ui.showTaskAdded(newTask, taskList.getSize());
     }
 
-    private void handleDelete(String arguments, String commandLine) {
+    private void handleDelete(String arguments) {
         try {
             int taskIndex = Integer.parseInt(arguments) - 1;
             if (isValidTaskIndex(taskIndex)) {
