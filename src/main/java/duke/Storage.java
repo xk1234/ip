@@ -1,8 +1,8 @@
 package duke;
+
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
-
 
 class Storage {
     private static final String DATA_FILE_PATH = "./data/duke.txt";
@@ -10,6 +10,7 @@ class Storage {
     public ArrayList<Task> loadTasks() {
         ArrayList<Task> list = new ArrayList<>();
         java.nio.file.Path filePath = java.nio.file.Paths.get(DATA_FILE_PATH);
+
         if (!java.nio.file.Files.exists(filePath)) {
             return list; // Return empty list, don't print message here
         }
@@ -30,7 +31,7 @@ class Storage {
                     case "D":
                         String byString = parts[3];
                         LocalDateTime by = Parser.parseDateTime(byString);
-                        if(by != null){
+                        if (by != null) {
                             task = new Deadline(description, by);
                         }
                         break;
@@ -39,10 +40,12 @@ class Storage {
                         String toString = parts[4];
                         LocalDateTime from = Parser.parseDateTime(fromString);
                         LocalDateTime to = Parser.parseDateTime(toString);
-                        if(from != null && to != null){
+                        if (from != null && to != null) {
                             task = new Event(description, from, to);
                         }
                         break;
+                    default:
+                        // No-op (unrecognized task type)
                 }
 
                 if (task != null) {
@@ -51,7 +54,6 @@ class Storage {
                     }
                     list.add(task);
                 }
-
             }
             System.out.println("Tasks loaded from " + DATA_FILE_PATH);
         } catch (java.io.IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
@@ -59,7 +61,6 @@ class Storage {
         }
         return list;
     }
-
 
     public void saveTasks(TaskList taskList) {
         java.nio.file.Path filePath = java.nio.file.Paths.get(DATA_FILE_PATH);

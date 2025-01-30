@@ -1,11 +1,18 @@
 package duke;
+
 import java.time.LocalDateTime;
 
+/**
+ * Represents the main Duke application.
+ * This class initializes the necessary components (Ui, Storage, TaskList)
+ * and runs the command loop until the user exits.
+ */
 public class Duke {
 
     private final Ui ui;
     private final Storage storage;
     private final TaskList taskList;
+
 
     public Duke() {
         ui = new Ui();
@@ -13,17 +20,19 @@ public class Duke {
         taskList = new TaskList(storage.loadTasks());
     }
 
+
     public void run() {
         ui.showWelcomeMessage("Duke");
         if (taskList.getSize() == 0) {
             ui.showDataLoadMessage();
         }
+
         boolean isExit = false;
         while (!isExit) {
             String commandLine = ui.readCommand();
             String[] parts = Parser.parseCommand(commandLine);
             String command = parts[0];
-            String arguments = parts.length > 1 ? parts[1] : "";
+            String arguments = (parts.length > 1) ? parts[1] : "";
 
             switch (command.toLowerCase()) {
                 case "bye":
@@ -31,7 +40,7 @@ public class Duke {
                     break;
                 case "list":
                     ui.showTaskList();
-                    for (int i = 0; i < taskList.getSize(); i++) { // Moved list item printing to Ui
+                    for (int i = 0; i < taskList.getSize(); i++) {
                         ui.showTaskListItem(i, taskList.getTask(i));
                     }
                     break;
@@ -57,6 +66,7 @@ public class Duke {
                     ui.showInvalidCommandError(commandLine);
                     break;
             }
+
             storage.saveTasks(taskList);
         }
         ui.showGoodbyeMessage();
@@ -153,7 +163,6 @@ public class Duke {
             ui.showInvalidInputError(arguments, "delete <task_number>");
         }
     }
-
 
     private boolean isValidTaskIndex(int index) {
         return index >= 0 && index < taskList.getSize();
