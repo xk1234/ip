@@ -62,6 +62,9 @@ public class Duke {
                 case "delete":
                     handleDelete(arguments);
                     break;
+                case "find":
+                    handleFind(arguments);
+                    break;
                 default:
                     ui.showInvalidCommandError(commandLine);
                     break;
@@ -162,6 +165,13 @@ public class Duke {
         } catch (NumberFormatException e) {
             ui.showInvalidInputError(arguments, "delete <task_number>");
         }
+    }
+
+    private void handleFind(String keyword) {
+        // Retrieve matching tasks
+        java.util.ArrayList<Task> matchingTasks = taskList.findTasks(keyword);
+        // Display them
+        ui.showMatchingTasks(matchingTasks);
     }
 
     private boolean isValidTaskIndex(int index) {
