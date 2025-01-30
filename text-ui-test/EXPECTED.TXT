@@ -1,6 +1,7 @@
 Hello! I'm Duke
 
 No existing data file found. Starting with an empty task list.
+____________________________________________________________
 What can I do for you?
 ____________________________________________________________
 Got it. I've added this task:

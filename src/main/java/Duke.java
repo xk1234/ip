@@ -1,344 +1,164 @@
-import java.io.FileWriter;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.time.LocalDateTime;
-import java.time.format.DateTimeFormatter;
-import java.time.format.DateTimeParseException;
-import java.util.ArrayList;
-import java.util.List;
-import java.util.Scanner;
 
 public class Duke {
 
-    private static final String DATA_FILE_PATH = "./data/duke.txt";
+    private Ui ui;
+    private Storage storage;
+    private TaskList taskList;
 
-    static abstract class Task {
-        String description;
-        boolean isDone;
+    public Duke(String filePath) {
+        ui = new Ui();
+        storage = new Storage();
+        taskList = new TaskList(storage.loadTasks());
+    }
 
-        public Task(String description) {
-            this.description = description;
-            this.isDone = false;
+    public void run() {
+        ui.showWelcomeMessage("Duke");
+        if (taskList.getSize() == 0) {
+            ui.showDataLoadMessage();
         }
+        boolean isExit = false;
+        while (!isExit) {
+            String commandLine = ui.readCommand(); // This now includes lines around "What can I do for you?"
+            String[] parts = Parser.parseCommand(commandLine);
+            String command = parts[0];
+            String arguments = parts.length > 1 ? parts[1] : "";
 
-        public void markDone() {
-            this.isDone = true;
+            switch (command.toLowerCase()) {
+                case "bye":
+                    isExit = true;
+                    break;
+                case "list":
+                    ui.showTaskList(taskList);
+                    for (int i = 0; i < taskList.getSize(); i++) { // Moved list item printing to Ui
+                        ui.showTaskListItem(i, taskList.getTask(i));
+                    }
+                    break;
+                case "mark":
+                    handleMark(arguments);
+                    break;
+                case "unmark":
+                    handleUnmark(arguments);
+                    break;
+                case "todo":
+                    handleTodo(arguments, commandLine);
+                    break;
+                case "deadline":
+                    handleDeadline(arguments, commandLine);
+                    break;
+                case "event":
+                    handleEvent(arguments, commandLine);
+                    break;
+                case "delete":
+                    handleDelete(arguments, commandLine);
+                    break;
+                default:
+                    ui.showInvalidCommandError(commandLine);
+                    break;
+            }
+            storage.saveTasks(taskList);
         }
+        ui.showGoodbyeMessage();
+    }
 
-        public void markUndone() {
-            this.isDone = false;
-        }
-
-        public abstract String getTaskType();
-
-        @Override
-        public String toString() {
-            String status = isDone ? "[X]" : "[ ]";
-            return "[" + getTaskType() + "]" + status + " " + description;
-        }
-
-        public String toFileString() {
-            return String.format("%s | %d | %s", getTaskType(), isDone ? 1 : 0, description);
+    private void handleMark(String arguments) {
+        try {
+            int taskIndex = Integer.parseInt(arguments) - 1;
+            if (isValidTaskIndex(taskIndex)) {
+                taskList.markTaskDone(taskIndex);
+                ui.showTaskMarked(taskList.getTask(taskIndex));
+            } else {
+                ui.showInvalidInputError(arguments, "mark <task_number>");
+            }
+        } catch (NumberFormatException e) {
+            ui.showInvalidInputError(arguments, "mark <task_number>");
         }
     }
 
-    static class ToDo extends Task {
-        public ToDo(String description) {
-            super(description);
-        }
-
-        @Override
-        public String getTaskType() {
-            return "T";
-        }
-    }
-
-    static class Deadline extends Task {
-        LocalDateTime by;
-
-        public Deadline(String description, LocalDateTime by) {
-            super(description);
-            this.by = by;
-        }
-
-        @Override
-        public String getTaskType() {
-            return "D";
-        }
-
-        @Override
-        public String toString() {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy HHmm");
-            String formattedDate = by.format(formatter);
-            return super.toString() + " (by: " + formattedDate + ")";
-        }
-
-        @Override
-        public String toFileString() {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
-            return super.toFileString() + " | " + by.format(formatter);
+    private void handleUnmark(String arguments) {
+        try {
+            int taskIndex = Integer.parseInt(arguments) - 1;
+            if (isValidTaskIndex(taskIndex)) {
+                taskList.markTaskUndone(taskIndex);
+                ui.showTaskUnmarked(taskList.getTask(taskIndex));
+            } else {
+                ui.showInvalidInputError(arguments, "unmark <task_number>");
+            }
+        } catch (NumberFormatException e) {
+            ui.showInvalidInputError(arguments, "unmark <task_number>");
         }
     }
 
-    static class Event extends Task {
-        LocalDateTime from;
-        LocalDateTime to;
-
-        public Event(String description, LocalDateTime from, LocalDateTime to) {
-            super(description);
-            this.from = from;
-            this.to = to;
+    private void handleTodo(String arguments, String commandLine) {
+        String description = arguments.trim();
+        if (description.isEmpty()) {
+            ui.showEmptyDescriptionError(commandLine);
+        } else {
+            Task newTask = new ToDo(description);
+            taskList.addTask(newTask);
+            ui.showTaskAdded(newTask, taskList.getSize());
         }
+    }
 
-        @Override
-        public String getTaskType() {
-            return "E";
+    private void handleDeadline(String arguments, String commandLine) {
+        String[] parts = Parser.parseDeadlineArguments(arguments);
+        if (parts.length < 2) {
+            ui.showInvalidInputError(commandLine, "deadline <description> /by <yyyy-MM-dd HHmm>");
+            return;
         }
-
-        @Override
-        public String toString() {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("MMM dd yyyy HHmm");
-            String formattedFrom = from.format(formatter);
-            String formattedTo = to.format(formatter);
-            return super.toString() + " (from: " + formattedFrom + " to: " + formattedTo + ")";
+        String description = parts[0].trim();
+        String byString = parts[1].trim();
+        LocalDateTime by = Parser.parseDateTime(byString);
+        if (by == null) {
+            ui.showInvalidDateError(commandLine, "deadline <description> /by <yyyy-MM-dd HHmm>");
+            return;
         }
+        Task newTask = new Deadline(description, by);
+        taskList.addTask(newTask);
+        ui.showTaskAdded(newTask, taskList.getSize());
+    }
 
-
-        @Override
-        public String toFileString() {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
-            return super.toFileString() + " | " + from.format(formatter) + " | " + to.format(formatter);
+    private void handleEvent(String arguments, String commandLine) {
+        String[] parts = Parser.parseEventArguments(arguments);
+        if (parts.length < 3) {
+            ui.showInvalidInputError(commandLine, "event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+            return;
         }
+        String description = parts[0].trim();
+        String fromString = parts[1].trim();
+        String toString = parts[2].trim();
+        LocalDateTime from = Parser.parseDateTime(fromString);
+        LocalDateTime to = Parser.parseDateTime(toString);
+        if (from == null || to == null) {
+            ui.showInvalidDateError(commandLine, "event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+            return;
+        }
+        Task newTask = new Event(description, from, to);
+        taskList.addTask(newTask);
+        ui.showTaskAdded(newTask, taskList.getSize());
+    }
+
+    private void handleDelete(String arguments, String commandLine) {
+        try {
+            int taskIndex = Integer.parseInt(arguments) - 1;
+            if (isValidTaskIndex(taskIndex)) {
+                Task deletedTask = taskList.getTask(taskIndex);
+                taskList.deleteTask(taskIndex);
+                ui.showTaskDeleted(deletedTask, taskList.getSize());
+            } else {
+                ui.showInvalidInputError(arguments, "delete <task_number>");
+            }
+        } catch (NumberFormatException e) {
+            ui.showInvalidInputError(arguments, "delete <task_number>");
+        }
+    }
+
+
+    private boolean isValidTaskIndex(int index) {
+        return index >= 0 && index < taskList.getSize();
     }
 
     public static void main(String[] args) {
-        String name = "Duke";
-
-        System.out.println("Hello! I'm " + name + "\n");
-        ArrayList<Task> list = new ArrayList<>();
-
-        // Load tasks from file
-        loadTasksFromFile(list);
-
-        Scanner scan = new Scanner(System.in);
-        System.out.println("What can I do for you?");
-        while (scan.hasNextLine()) {
-            String inputLine = scan.nextLine(); // Read the whole line of input
-            String[] parts = inputLine.split(" ", 2); // Split into command and arguments
-            String input = parts[0]; // Command is the first word
-            String arguments = parts.length > 1 ? parts[1] : ""; // Arguments are the rest
-
-            System.out.println("____________________________________________________________");
-
-            if (input.equalsIgnoreCase("bye")) {
-                break;
-            } else if (input.equalsIgnoreCase("list")) {
-                System.out.println("Here are the tasks in your list:");
-                for (int i = 0; i < list.size(); i++) {
-                    System.out.println((i + 1) + ". " + list.get(i));
-                }
-            } else if (input.equalsIgnoreCase("mark")) {
-                try {
-                    int taskNumber = Integer.parseInt(arguments) - 1;
-                    if (taskNumber >= 0 && taskNumber < list.size()) {
-                        list.get(taskNumber).markDone();
-                        System.out.println("Nice! I've marked this task as done:");
-                        System.out.println("  " + list.get(taskNumber));
-                        saveTasksToFile(list); // Save changes
-                    } else {
-                        System.out.println("Invalid task number.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: mark <task_number>");
-                }
-            } else if (input.equalsIgnoreCase("unmark")) {
-                try {
-                    int taskNumber = Integer.parseInt(arguments) - 1;
-                    if (taskNumber >= 0 && taskNumber < list.size()) {
-                        list.get(taskNumber).markUndone();
-                        System.out.println("OK, I've marked this task as not done yet:");
-                        System.out.println("  " + list.get(taskNumber));
-                        saveTasksToFile(list); // Save changes
-                    } else {
-                        System.out.println("Invalid task number.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: unmark <task_number>");
-                }
-            } else if (input.equalsIgnoreCase("todo")) {
-                try {
-                    String description = arguments.trim();
-                    if (description.isEmpty()) {
-                        System.out.println("OOPS!!! Invalid description for command: " + inputLine + ". Description cannot be empty.");
-                    } else {
-                        Task newTask = new ToDo(description);
-                        list.add(newTask);
-                        System.out.println("Got it. I've added this task:");
-                        System.out.println("  " + newTask);
-                        System.out.println("Now you have " + list.size() + " tasks in the list.");
-                        saveTasksToFile(list); // Save changes
-                    }
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid description for command: " + inputLine + " of a todo.");
-                }
-            } else if (input.equalsIgnoreCase("deadline")) {
-                try {
-                    String[] parts2 = arguments.split(" /by ", 2);
-                    if (parts2.length < 2) {
-                        System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
-                        continue;
-                    }
-                    String description = parts2[0].trim();
-                    String byString = parts2[1].trim();
-                    LocalDateTime by = parseDateTime(byString);
-                    if (by == null) {
-                        System.out.println("OOPS!!! Invalid date/time format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
-                        continue;
-                    }
-
-                    Task newTask = new Deadline(description, by);
-                    list.add(newTask);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + newTask);
-                    System.out.println("Now you have " + list.size() + " tasks in the list.");
-                    saveTasksToFile(list); // Save changes
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
-                }
-            } else if (input.equalsIgnoreCase("event")) {
-                try {
-                    String[] parts2 = arguments.split(" /from | /to ");
-                    if (parts2.length < 3) {
-                        System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
-                        continue;
-                    }
-                    String description = parts2[0].trim();
-                    String fromString = parts2[1].trim();
-                    String toString = parts2[2].trim();
-                    LocalDateTime from = parseDateTime(fromString);
-                    LocalDateTime to = parseDateTime(toString);
-                    if (from == null || to == null) {
-                        System.out.println("OOPS!!! Invalid date/time format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
-                        continue;
-                    }
-
-                    Task newTask = new Event(description, from, to);
-                    list.add(newTask);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + newTask);
-                    System.out.println("Now you have " + list.size() + " tasks in the list.");
-                    saveTasksToFile(list); // Save changes
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
-                }
-            } else if (input.equalsIgnoreCase("delete")) {
-                try {
-                    int taskNumber = Integer.parseInt(arguments) - 1;
-                    if (taskNumber >= 0 && taskNumber < list.size()) {
-                        Task removedTask = list.remove(taskNumber);
-                        System.out.println("Noted. I've removed this task:");
-                        System.out.println("  " + removedTask);
-                        System.out.println("Now you have " + list.size() + " tasks in the list.");
-                        saveTasksToFile(list); // Save changes
-                    } else {
-                        System.out.println("Invalid task number.");
-                    }
-                } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: delete <task_number>");
-                }
-            } else {
-                System.out.println("OOPS!!! I'm sorry, but I don't know what command: " + inputLine + " means :-(");
-            }
-
-            System.out.println("____________________________________________________________");
-            System.out.println("What can I do for you?");
-        }
-
-        System.out.println("Bye. Hope to see you again soon!");
-
-    }
-
-    private static LocalDateTime parseDateTime(String dateTimeString) {
-        try {
-            DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
-            return LocalDateTime.parse(dateTimeString, formatter);
-        } catch (DateTimeParseException e) {
-            return null;
-        }
-    }
-
-
-    private static void loadTasksFromFile(ArrayList<Task> list) {
-        Path filePath = Paths.get(DATA_FILE_PATH);
-        if (!Files.exists(filePath)) {
-            System.out.println("No existing data file found. Starting with an empty task list.");
-            return;
-        }
-
-        try {
-            List<String> lines = Files.readAllLines(filePath);
-            for (String line : lines) {
-                String[] parts = line.split(" \\| ");
-                String taskType = parts[0];
-                int isDone = Integer.parseInt(parts[1]);
-                String description = parts[2];
-
-                Task task = null;
-                switch (taskType) {
-                    case "T":
-                        task = new ToDo(description);
-                        break;
-                    case "D":
-                        String byString = parts[3];
-                        LocalDateTime by = parseDateTime(byString);
-                        if(by != null){
-                            task = new Deadline(description, by);
-                        }
-                        break;
-                    case "E":
-                        String fromString = parts[3];
-                        String toString = parts[4];
-                        LocalDateTime from = parseDateTime(fromString);
-                        LocalDateTime to = parseDateTime(toString);
-                        if(from != null && to != null){
-                            task = new Event(description, from, to);
-                        }
-                        break;
-                }
-
-                if (task != null) {
-                    if (isDone == 1) {
-                        task.markDone();
-                    }
-                    list.add(task);
-                }
-
-            }
-            System.out.println("Tasks loaded from " + DATA_FILE_PATH);
-        } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Error loading tasks from file during startup: " + e.getMessage());
-        }
-    }
-
-
-    private static void saveTasksToFile(ArrayList<Task> list) {
-        Path filePath = Paths.get(DATA_FILE_PATH);
-        Path parentDir = filePath.getParent();
-
-        try {
-            if (parentDir != null && !Files.exists(parentDir)) {
-                Files.createDirectories(parentDir);
-            }
-
-            try (FileWriter writer = new FileWriter(filePath.toFile())) {
-                for (Task task : list) {
-                    writer.write(task.toFileString() + System.lineSeparator());
-                }
-            }
-        } catch (IOException e) {
-            System.out.println("Error saving tasks to file: " + e.getMessage());
-        }
+        new Duke("./data/duke.txt").run();
     }
 }
