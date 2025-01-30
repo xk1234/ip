@@ -2,11 +2,11 @@ import java.time.LocalDateTime;
 
 public class Duke {
 
-    private Ui ui;
-    private Storage storage;
-    private TaskList taskList;
+    private final Ui ui;
+    private final Storage storage;
+    private final TaskList taskList;
 
-    public Duke(String filePath) {
+    public Duke() {
         ui = new Ui();
         storage = new Storage();
         taskList = new TaskList(storage.loadTasks());
@@ -29,7 +29,7 @@ public class Duke {
                     isExit = true;
                     break;
                 case "list":
-                    ui.showTaskList(taskList);
+                    ui.showTaskList();
                     for (int i = 0; i < taskList.getSize(); i++) { // Moved list item printing to Ui
                         ui.showTaskListItem(i, taskList.getTask(i));
                     }
@@ -159,6 +159,6 @@ public class Duke {
     }
 
     public static void main(String[] args) {
-        new Duke("./data/duke.txt").run();
+        new Duke().run();
     }
 }

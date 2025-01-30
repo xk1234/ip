@@ -1,11 +1,7 @@
 import java.util.ArrayList;
 
 class TaskList {
-    private ArrayList<Task> tasks;
-
-    public TaskList() {
-        this.tasks = new ArrayList<>();
-    }
+    private final ArrayList<Task> tasks;
 
     public TaskList(ArrayList<Task> tasks) {
         this.tasks = tasks;
@@ -35,7 +31,4 @@ class TaskList {
         this.tasks.get(index).markUndone();
     }
 
-    public ArrayList<Task> getTasks() {
-        return this.tasks;
-    }
 }

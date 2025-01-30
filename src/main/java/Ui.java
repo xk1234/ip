@@ -1,5 +1,5 @@
 class Ui {
-    private java.util.Scanner scanner;
+    private final java.util.Scanner scanner;
 
     public Ui() {
         this.scanner = new java.util.Scanner(System.in);
@@ -17,7 +17,7 @@ class Ui {
         System.out.println("Bye. Hope to see you again soon!");
     }
 
-    public void showTaskList(TaskList taskList) {
+    public void showTaskList() {
         System.out.println("Here are the tasks in your list:");
     }
 
@@ -45,14 +45,6 @@ class Ui {
         System.out.println("Noted. I've removed this task:");
         System.out.println("  " + task);
         System.out.println("Now you have " + taskCount + " tasks in the list.");
-    }
-
-    public void showLoadingError(String message) {
-        System.out.println("Error loading tasks from file during startup: " + message);
-    }
-
-    public void showSavingError(String message) {
-        System.out.println("Error saving tasks to file: " + message);
     }
 
     public void showInvalidCommandError(String command) {
