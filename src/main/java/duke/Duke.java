@@ -31,7 +31,7 @@ public class Duke {
                     break;
                 case "list":
                     ui.showTaskList();
-                    for (int i = 0; i < taskList.getSize(); i++) { // Moved list item printing to Ui
+                    for (int i = 0; i < taskList.getSize(); i++) {
                         ui.showTaskListItem(i, taskList.getTask(i));
                     }
                     break;
@@ -52,6 +52,9 @@ public class Duke {
                     break;
                 case "delete":
                     handleDelete(arguments);
+                    break;
+                case "find":
+                    handleFind(arguments);
                     break;
                 default:
                     ui.showInvalidCommandError(commandLine);
@@ -154,6 +157,10 @@ public class Duke {
         }
     }
 
+    private void handleFind(String keyword) {
+        java.util.ArrayList<Task> matchingTasks = taskList.findTasks(keyword);
+        ui.showMatchingTasks(matchingTasks);
+    }
 
     private boolean isValidTaskIndex(int index) {
         return index >= 0 && index < taskList.getSize();

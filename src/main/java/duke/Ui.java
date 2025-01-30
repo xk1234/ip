@@ -74,4 +74,11 @@ class Ui {
     public void showLine() {
         System.out.println("____________________________________________________________");
     }
+
+    public void showMatchingTasks(java.util.ArrayList<Task> tasks) {
+        System.out.println("Here are the matching tasks in your list:");
+        for (int i = 0; i < tasks.size(); i++) {
+            System.out.println((i + 1) + "." + tasks.get(i));
+        }
+    }
 }
