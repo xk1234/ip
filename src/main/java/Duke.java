@@ -125,7 +125,10 @@ public class Duke {
         Scanner scan = new Scanner(System.in);
         System.out.println("What can I do for you?");
         while (scan.hasNextLine()) {
-            String input = scan.nextLine();
+            String inputLine = scan.nextLine(); // Read the whole line of input
+            String[] parts = inputLine.split(" ", 2); // Split into command and arguments
+            String input = parts[0]; // Command is the first word
+            String arguments = parts.length > 1 ? parts[1] : ""; // Arguments are the rest
 
             System.out.println("____________________________________________________________");
 
@@ -136,9 +139,9 @@ public class Duke {
                 for (int i = 0; i < list.size(); i++) {
                     System.out.println((i + 1) + ". " + list.get(i));
                 }
-            } else if (input.startsWith("mark")) {
+            } else if (input.equalsIgnoreCase("mark")) {
                 try {
-                    int taskNumber = Integer.parseInt(input.split(" ")[1]) - 1;
+                    int taskNumber = Integer.parseInt(arguments) - 1;
                     if (taskNumber >= 0 && taskNumber < list.size()) {
                         list.get(taskNumber).markDone();
                         System.out.println("Nice! I've marked this task as done:");
@@ -148,11 +151,11 @@ public class Duke {
                         System.out.println("Invalid task number.");
                     }
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input. Use: mark <task_number>");
+                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: mark <task_number>");
                 }
-            } else if (input.startsWith("unmark")) {
+            } else if (input.equalsIgnoreCase("unmark")) {
                 try {
-                    int taskNumber = Integer.parseInt(input.split(" ")[1]) - 1;
+                    int taskNumber = Integer.parseInt(arguments) - 1;
                     if (taskNumber >= 0 && taskNumber < list.size()) {
                         list.get(taskNumber).markUndone();
                         System.out.println("OK, I've marked this task as not done yet:");
@@ -162,28 +165,36 @@ public class Duke {
                         System.out.println("Invalid task number.");
                     }
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input. Use: unmark <task_number>");
+                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: unmark <task_number>");
                 }
-            } else if (input.startsWith("todo")) {
+            } else if (input.equalsIgnoreCase("todo")) {
                 try {
-                    String description = input.substring(5).trim();
-                    Task newTask = new ToDo(description);
-                    list.add(newTask);
-                    System.out.println("Got it. I've added this task:");
-                    System.out.println("  " + newTask);
-                    System.out.println("Now you have " + list.size() + " tasks in the list.");
-                    saveTasksToFile(list); // Save changes
+                    String description = arguments.trim();
+                    if (description.isEmpty()) {
+                        System.out.println("OOPS!!! Invalid description for command: " + inputLine + ". Description cannot be empty.");
+                    } else {
+                        Task newTask = new ToDo(description);
+                        list.add(newTask);
+                        System.out.println("Got it. I've added this task:");
+                        System.out.println("  " + newTask);
+                        System.out.println("Now you have " + list.size() + " tasks in the list.");
+                        saveTasksToFile(list); // Save changes
+                    }
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid description of a todo.");
+                    System.out.println("OOPS!!! Invalid description for command: " + inputLine + " of a todo.");
                 }
-            } else if (input.startsWith("deadline")) {
+            } else if (input.equalsIgnoreCase("deadline")) {
                 try {
-                    String[] parts = input.substring(9).split(" /by ");
-                    String description = parts[0].trim();
-                    String byString = parts[1].trim();
+                    String[] parts2 = arguments.split(" /by ", 2);
+                    if (parts2.length < 2) {
+                        System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
+                        continue;
+                    }
+                    String description = parts2[0].trim();
+                    String byString = parts2[1].trim();
                     LocalDateTime by = parseDateTime(byString);
                     if (by == null) {
-                        System.out.println("OOPS!!! Invalid date/time format. Use: deadline <description> /by <yyyy-MM-dd HHmm>");
+                        System.out.println("OOPS!!! Invalid date/time format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
                         continue;
                     }
 
@@ -194,18 +205,22 @@ public class Duke {
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                     saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format. Use: deadline <description> /by <yyyy-MM-dd HHmm>");
+                    System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: deadline <description> /by <yyyy-MM-dd HHmm>");
                 }
-            } else if (input.startsWith("event")) {
+            } else if (input.equalsIgnoreCase("event")) {
                 try {
-                    String[] parts = input.substring(6).split(" /from | /to ");
-                    String description = parts[0].trim();
-                    String fromString = parts[1].trim();
-                    String toString = parts[2].trim();
+                    String[] parts2 = arguments.split(" /from | /to ");
+                    if (parts2.length < 3) {
+                        System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+                        continue;
+                    }
+                    String description = parts2[0].trim();
+                    String fromString = parts2[1].trim();
+                    String toString = parts2[2].trim();
                     LocalDateTime from = parseDateTime(fromString);
                     LocalDateTime to = parseDateTime(toString);
                     if (from == null || to == null) {
-                        System.out.println("OOPS!!! Invalid date/time format. Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+                        System.out.println("OOPS!!! Invalid date/time format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
                         continue;
                     }
 
@@ -216,11 +231,11 @@ public class Duke {
                     System.out.println("Now you have " + list.size() + " tasks in the list.");
                     saveTasksToFile(list); // Save changes
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid format. Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
+                    System.out.println("OOPS!!! Invalid format for command: " + inputLine + ". Use: event <description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>");
                 }
-            } else if (input.startsWith("delete")) {
+            } else if (input.equalsIgnoreCase("delete")) {
                 try {
-                    int taskNumber = Integer.parseInt(input.split(" ")[1]) - 1;
+                    int taskNumber = Integer.parseInt(arguments) - 1;
                     if (taskNumber >= 0 && taskNumber < list.size()) {
                         Task removedTask = list.remove(taskNumber);
                         System.out.println("Noted. I've removed this task:");
@@ -231,10 +246,10 @@ public class Duke {
                         System.out.println("Invalid task number.");
                     }
                 } catch (Exception e) {
-                    System.out.println("OOPS!!! Invalid input. Use: delete <task_number>");
+                    System.out.println("OOPS!!! Invalid input for command: " + inputLine + ". Use: delete <task_number>");
                 }
             } else {
-                System.out.println("OOPS!!! I'm sorry, but I don't know what that means :-(");
+                System.out.println("OOPS!!! I'm sorry, but I don't know what command: " + inputLine + " means :-(");
             }
 
             System.out.println("____________________________________________________________");
@@ -303,7 +318,7 @@ public class Duke {
             }
             System.out.println("Tasks loaded from " + DATA_FILE_PATH);
         } catch (IOException | NumberFormatException | ArrayIndexOutOfBoundsException e) {
-            System.out.println("Error loading tasks from file: " + e.getMessage());
+            System.out.println("Error loading tasks from file during startup: " + e.getMessage());
         }
     }
 
