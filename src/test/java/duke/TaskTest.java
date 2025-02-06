@@ -1,27 +1,30 @@
 package duke;
 
-import org.junit.jupiter.api.Test;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertTrue;
+
 import java.time.LocalDateTime;
 
-import static org.junit.jupiter.api.Assertions.*;
+import org.junit.jupiter.api.Test;
 
 public class TaskTest {
 
     @Test
     void markDone_taskIsMarkedDone() {
         ToDo todo = new ToDo("Buy groceries");
-        assertFalse(todo.isDone);
+        assertFalse(todo.isDone());
         todo.markDone();
-        assertTrue(todo.isDone);
+        assertTrue(todo.isDone());
     }
 
     @Test
     void markUndone_taskIsMarkedUndone() {
         ToDo todo = new ToDo("Read a book");
         todo.markDone();
-        assertTrue(todo.isDone);
+        assertTrue(todo.isDone());
         todo.markUndone();
-        assertFalse(todo.isDone);
+        assertFalse(todo.isDone());
     }
 
     @Test
@@ -70,7 +73,7 @@ public class TaskTest {
         LocalDateTime from = LocalDateTime.of(2024, 9, 10, 9, 0);
         LocalDateTime to = LocalDateTime.of(2024, 9, 10, 17, 0);
         Event event = new Event("Team meeting", from, to);
-        assertEquals("[E][ ] Team meeting (from: Sept 10 2024 0900 to: Sept 10 2024 1700)", event.toString()); // Changed "Sep" to "Sept"
+        assertEquals("[E][ ] Team meeting (from: Sept 10 2024 0900 to: Sept 10 2024 1700)", event.toString());
     }
 
     @Test

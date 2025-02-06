@@ -8,8 +8,8 @@ import java.time.format.DateTimeFormatter;
  * This is the base class for different types of tasks in the Duke application.
  */
 abstract class Task {
-    String description;
-    boolean isDone;
+    private String description;
+    private boolean isDone;
 
     /**
      * Constructs a Task object.
@@ -66,6 +66,22 @@ abstract class Task {
     public String toFileString() {
         return String.format("%s | %d | %s", getTaskType(), isDone ? 1 : 0, description);
     }
+
+    public String getDescription() {
+        return description;
+    }
+
+    public boolean isDone() {
+        return isDone;
+    }
+
+    public void setDescription(String description) {
+        this.description = description;
+    }
+
+    public void setDone(boolean done) {
+        isDone = done;
+    }
 }
 
 /**
@@ -99,7 +115,7 @@ class ToDo extends Task {
  */
 class Deadline extends Task {
     /** Deadline for the task. */
-    LocalDateTime by;
+    private LocalDateTime by;
 
     /**
      * Constructs a Deadline task.
@@ -147,6 +163,14 @@ class Deadline extends Task {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
         return super.toFileString() + " | " + by.format(formatter);
     }
+
+    public LocalDateTime getBy() {
+        return by;
+    }
+
+    public void setBy(LocalDateTime by) {
+        this.by = by;
+    }
 }
 
 /**
@@ -155,9 +179,9 @@ class Deadline extends Task {
  */
 class Event extends Task {
     /** Start time of the event. */
-    LocalDateTime from;
+    private LocalDateTime from;
     /** End time of the event. */
-    LocalDateTime to;
+    private LocalDateTime to;
 
     /**
      * Constructs an Event task.
@@ -207,5 +231,21 @@ class Event extends Task {
     public String toFileString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
         return super.toFileString() + " | " + from.format(formatter) + " | " + to.format(formatter);
+    }
+
+    public LocalDateTime getFrom() {
+        return from;
+    }
+
+    public LocalDateTime getTo() {
+        return to;
+    }
+
+    public void setFrom(LocalDateTime from) {
+        this.from = from;
+    }
+
+    public void setTo(LocalDateTime to) {
+        this.to = to;
     }
 }
