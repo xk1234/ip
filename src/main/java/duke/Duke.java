@@ -15,7 +15,7 @@ public class Duke {
     private final Ui ui;
     private final Storage storage;
     private final TaskList taskList;
-    private boolean isExit; // Tracks whether Duke should exit
+    // Tracks whether Duke should exit
 
     /**
      * Constructs a new Duke instance.
@@ -24,7 +24,6 @@ public class Duke {
         ui = new Ui();
         storage = new Storage();
         taskList = new TaskList(storage.loadTasks());
-        isExit = false;
     }
 
     /**
@@ -121,7 +120,7 @@ public class Duke {
      */
     private String handleDelete(String arguments) {
         return handleTaskIndexOperation(arguments, "delete", taskIndex -> {
-            Task deletedTask = taskList.getTask(taskIndex); // Get task *before* deletion
+            taskList.getTask(taskIndex); // Get task *before* deletion
             taskList.deleteTask(taskIndex); // Delete task.
         }, false); //dummy boolean
     }
@@ -153,42 +152,22 @@ public class Duke {
         String command = parts[0];
         String arguments = (parts.length > 1) ? parts[1] : "";
 
-        String response;
-        switch (command.toLowerCase()) {
-        case "bye":
-            isExit = true;
-            response = ui.getGoodbyeMessage();
-            break;
-        case "list":
-            response = IntStream.range(0, taskList.getSize())
-                    .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
-                    .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
-            break;
-        case "mark":
-            response = handleMark(arguments);
-            break;
-        case "unmark":
-            response = handleUnmark(arguments);
-            break;
-        case "todo":
-            response = handleTodo(arguments, input);
-            break;
-        case "deadline":
-            response = handleDeadline(arguments, input);
-            break;
-        case "event":
-            response = handleEvent(arguments, input);
-            break;
-        case "delete":
-            response = handleDelete(arguments);
-            break;
-        case "find":
-            response = handleFind(arguments);
-            break;
-        default:
-            response = ui.getInvalidCommandError(input);
-            break;
+        String response = switch (command.toLowerCase()) {
+        case "bye" -> {
+            yield ui.getGoodbyeMessage();
         }
+        case "list" -> IntStream.range(0, taskList.getSize())
+                .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
+                .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
+        case "mark" -> handleMark(arguments);
+        case "unmark" -> handleUnmark(arguments);
+        case "todo" -> handleTodo(arguments, input);
+        case "deadline" -> handleDeadline(arguments, input);
+        case "event" -> handleEvent(arguments, input);
+        case "delete" -> handleDelete(arguments);
+        case "find" -> handleFind(arguments);
+        default -> ui.getInvalidCommandError(input);
+        };
 
         // Save after any command that might modify the task list.
         storage.saveTasks(taskList);
