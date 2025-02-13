@@ -154,39 +154,39 @@ public class Duke {
 
         String response;
         switch (command.toLowerCase()) {
-            case "bye":
-                isExit = true;
-                response = ui.getGoodbyeMessage();
-                break;
-            case "list":
-                response = IntStream.range(0, taskList.getSize())
-                        .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
-                        .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
-                break;
-            case "mark":
-                response = handleMark(arguments);
-                break;
-            case "unmark":
-                response = handleUnmark(arguments);
-                break;
-            case "todo":
-                response = handleTodo(arguments, input);
-                break;
-            case "deadline":
-                response = handleDeadline(arguments, input);
-                break;
-            case "event":
-                response = handleEvent(arguments, input);
-                break;
-            case "delete":
-                response = handleDelete(arguments);
-                break;
-            case "find":
-                response = handleFind(arguments);
-                break;
-            default:
-                response = ui.getInvalidCommandError(input);
-                break;
+        case "bye":
+            isExit = true;
+            response = ui.getGoodbyeMessage();
+            break;
+        case "list":
+            response = IntStream.range(0, taskList.getSize())
+                    .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
+                    .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
+            break;
+        case "mark":
+            response = handleMark(arguments);
+            break;
+        case "unmark":
+            response = handleUnmark(arguments);
+            break;
+        case "todo":
+            response = handleTodo(arguments, input);
+            break;
+        case "deadline":
+            response = handleDeadline(arguments, input);
+            break;
+        case "event":
+            response = handleEvent(arguments, input);
+            break;
+        case "delete":
+            response = handleDelete(arguments);
+            break;
+        case "find":
+            response = handleFind(arguments);
+            break;
+        default:
+            response = ui.getInvalidCommandError(input);
+            break;
         }
 
         // Save after any command that might modify the task list.
