@@ -44,7 +44,8 @@ public class Duke {
     /**
      * Handles task index operations (mark, unmark, delete) using a common method with streams.
      */
-    private String handleTaskIndexOperation(String arguments, String command, TaskIndexOperation operation, boolean isMark) {
+    private String handleTaskIndexOperation(String arguments, String command,
+                                            TaskIndexOperation operation, boolean isMark) {
         try {
             int taskIndex = Integer.parseInt(arguments) - 1;
             if (isValidTaskIndex(taskIndex)) {
