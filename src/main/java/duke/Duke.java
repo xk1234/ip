@@ -185,7 +185,6 @@ public class Duke {
                 ✔ Delete tasks: delete <task number>
                 ✔ Find tasks: find <keyword>
                 ✔ Exit: bye
-                
                 Now what do you need me to do?\uD83D\uDE0A
                 """;
     }
