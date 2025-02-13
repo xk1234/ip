@@ -153,9 +153,7 @@ public class Duke {
         String arguments = (parts.length > 1) ? parts[1] : "";
 
         String response = switch (command.toLowerCase()) {
-        case "bye" -> {
-            yield ui.getGoodbyeMessage();
-        }
+        case "bye" -> ui.getGoodbyeMessage();
         case "list" -> IntStream.range(0, taskList.getSize())
                 .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
                 .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
@@ -175,18 +173,21 @@ public class Duke {
     }
 
     public String getWelcome() {
-        return "As a high performance robot, this is what I can do: \n"
-                + "✔ Add tasks: \n"
-                + "   - todo <task description>\n"
-                + "   - deadline <task description> /by <yyyy-MM-dd HHmm>\n"
-                + "   - event <task description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>\n"
-                + "✔ View tasks: list\n"
-                + "✔ Mark tasks as done: mark <task number>\n"
-                + "✔ Unmark tasks: unmark <task number>\n"
-                + "✔ Delete tasks: delete <task number>\n"
-                + "✔ Find tasks: find <keyword>\n"
-                + "✔ Exit: bye\n\n"
-                + "Now what do you need me to do?\uD83D\uDE0A\n";
+        return """
+                As a high performance robot, this is what I can do:\s
+                ✔ Add tasks:\s
+                   - todo <task description>
+                   - deadline <task description> /by <yyyy-MM-dd HHmm>
+                   - event <task description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>
+                ✔ View tasks: list
+                ✔ Mark tasks as done: mark <task number>
+                ✔ Unmark tasks: unmark <task number>
+                ✔ Delete tasks: delete <task number>
+                ✔ Find tasks: find <keyword>
+                ✔ Exit: bye
+                
+                Now what do you need me to do?\uD83D\uDE0A
+                """;
     }
 
     /**
