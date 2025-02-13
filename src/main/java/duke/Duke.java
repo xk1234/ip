@@ -2,11 +2,13 @@ package duke;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.stream.Collectors;
+import java.util.stream.IntStream;
 
 /**
  * Represents the main Duke application.
  * This class initializes the necessary components (Ui, Storage, TaskList)
- * and processes commands by returning appropriate response strings.
+ * and processes commands by returning appropriate response strings.  Uses streams where appropriate.
  */
 public class Duke {
 
@@ -17,8 +19,6 @@ public class Duke {
 
     /**
      * Constructs a new Duke instance.
-     * Initializes the user interface, storage, and task list.
-     * Loads tasks from storage into the task list.
      */
     public Duke() {
         ui = new Ui();
@@ -28,38 +28,37 @@ public class Duke {
     }
 
     /**
-     * Handles the "mark" command.
+     * Handles the "mark" command using streams.
      */
     private String handleMark(String arguments) {
-        try {
-            int taskIndex = Integer.parseInt(arguments) - 1;
-            if (isValidTaskIndex(taskIndex)) {
-                taskList.markTaskDone(taskIndex);
-                return ui.getTaskMarkedMessage(taskList.getTask(taskIndex));
-            } else {
-                return ui.getInvalidInputError(arguments, "mark <task_number>");
-            }
-        } catch (NumberFormatException e) {
-            return ui.getInvalidInputError(arguments, "mark <task_number>");
-        }
+        return handleTaskIndexOperation(arguments, "mark", taskList::markTaskDone, true);
     }
 
     /**
-     * Handles the "unmark" command.
+     * Handles the "unmark" command using streams.
      */
     private String handleUnmark(String arguments) {
+        return handleTaskIndexOperation(arguments, "unmark", taskList::markTaskUndone, false);
+    }
+
+    /**
+     * Handles task index operations (mark, unmark, delete) using a common method with streams.
+     */
+    private String handleTaskIndexOperation(String arguments, String command, TaskIndexOperation operation, boolean isMark) {
         try {
             int taskIndex = Integer.parseInt(arguments) - 1;
             if (isValidTaskIndex(taskIndex)) {
-                taskList.markTaskUndone(taskIndex);
-                return ui.getTaskUnmarkedMessage(taskList.getTask(taskIndex));
+                operation.perform(taskIndex); // Use the provided operation
+                Task task = taskList.getTask(taskIndex);
+                return isMark ? ui.getTaskMarkedMessage(task) : ui.getTaskUnmarkedMessage(task);
             } else {
-                return ui.getInvalidInputError(arguments, "unmark <task_number>");
+                return ui.getInvalidInputError(arguments, command + " <task_number>");
             }
         } catch (NumberFormatException e) {
-            return ui.getInvalidInputError(arguments, "unmark <task_number>");
+            return ui.getInvalidInputError(arguments, command + " <task_number>");
         }
     }
+
 
     /**
      * Handles the "todo" command.
@@ -68,11 +67,10 @@ public class Duke {
         String description = arguments.trim();
         if (description.isEmpty()) {
             return ui.getEmptyDescriptionError(commandLine);
-        } else {
-            Task newTask = new ToDo(description);
-            taskList.addTask(newTask);
-            return ui.getTaskAddedMessage(newTask, taskList.getSize());
         }
+        Task newTask = new ToDo(description);
+        taskList.addTask(newTask);
+        return ui.getTaskAddedMessage(newTask, taskList.getSize());
     }
 
     /**
@@ -118,25 +116,18 @@ public class Duke {
     }
 
     /**
-     * Handles the "delete" command.
+     * Handles the "delete" command using streams.
      */
     private String handleDelete(String arguments) {
-        try {
-            int taskIndex = Integer.parseInt(arguments) - 1;
-            if (isValidTaskIndex(taskIndex)) {
-                Task deletedTask = taskList.getTask(taskIndex);
-                taskList.deleteTask(taskIndex);
-                return ui.getTaskDeletedMessage(deletedTask, taskList.getSize());
-            } else {
-                return ui.getInvalidInputError(arguments, "delete <task_number>");
-            }
-        } catch (NumberFormatException e) {
-            return ui.getInvalidInputError(arguments, "delete <task_number>");
-        }
+        return handleTaskIndexOperation(arguments, "delete", taskIndex -> {
+            Task deletedTask = taskList.getTask(taskIndex); // Get task *before* deletion
+            taskList.deleteTask(taskIndex); // Delete task.
+        }, false); //dummy boolean
     }
 
+
     /**
-     * Handles the "find" command.
+     * Handles the "find" command using streams.
      */
     private String handleFind(String keyword) {
         ArrayList<Task> matchingTasks = taskList.findTasks(keyword);
@@ -150,59 +141,57 @@ public class Duke {
         return index >= 0 && index < taskList.getSize();
     }
 
+
     /**
-     * Processes the given input command and returns Duke's response as a String.
-     * This is the method used by the GUI's event handler.
-     *
-     * @param input The user's command input.
-     * @return A string response containing the result of executing the command.
+     * Processes the user input and returns a response.
+     * @param input The user input string.
+     * @return The response string.
      */
     public String getResponse(String input) {
-        StringBuilder response = new StringBuilder();
         String[] parts = Parser.parseCommand(input);
         String command = parts[0];
         String arguments = (parts.length > 1) ? parts[1] : "";
 
+        String response;
         switch (command.toLowerCase()) {
-        case "bye":
-            isExit = true;
-            response.append(ui.getGoodbyeMessage());
-            break;
-        case "list":
-            response.append(ui.getTaskListMessage());
-            for (int i = 0; i < taskList.getSize(); i++) {
-                response.append("\n").append(ui.getTaskListItem(i, taskList.getTask(i)));
-            }
-            break;
-        case "mark":
-            response.append(handleMark(arguments));
-            break;
-        case "unmark":
-            response.append(handleUnmark(arguments));
-            break;
-        case "todo":
-            response.append(handleTodo(arguments, input));
-            break;
-        case "deadline":
-            response.append(handleDeadline(arguments, input));
-            break;
-        case "event":
-            response.append(handleEvent(arguments, input));
-            break;
-        case "delete":
-            response.append(handleDelete(arguments));
-            break;
-        case "find":
-            response.append(handleFind(arguments));
-            break;
-        default:
-            response.append(ui.getInvalidCommandError(input));
-            break;
+            case "bye":
+                isExit = true;
+                response = ui.getGoodbyeMessage();
+                break;
+            case "list":
+                response = IntStream.range(0, taskList.getSize())
+                        .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
+                        .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
+                break;
+            case "mark":
+                response = handleMark(arguments);
+                break;
+            case "unmark":
+                response = handleUnmark(arguments);
+                break;
+            case "todo":
+                response = handleTodo(arguments, input);
+                break;
+            case "deadline":
+                response = handleDeadline(arguments, input);
+                break;
+            case "event":
+                response = handleEvent(arguments, input);
+                break;
+            case "delete":
+                response = handleDelete(arguments);
+                break;
+            case "find":
+                response = handleFind(arguments);
+                break;
+            default:
+                response = ui.getInvalidCommandError(input);
+                break;
         }
 
-        // Save the tasks after processing the command.
+        // Save after any command that might modify the task list.
         storage.saveTasks(taskList);
-        return response.toString();
+        return response;
     }
 
     public String getWelcome() {
@@ -218,5 +207,13 @@ public class Duke {
                 + "✔ Find tasks: find <keyword>\n"
                 + "✔ Exit: bye\n\n"
                 + "Now what do you need me to do?\uD83D\uDE0A\n";
+    }
+
+    /**
+     * Functional interface for task index operations.
+     */
+    @FunctionalInterface
+    private interface TaskIndexOperation {
+        void perform(int taskIndex);
     }
 }
