@@ -1,5 +1,6 @@
 package duke;
 import java.util.ArrayList;
+import java.util.List;
 
 class TaskList {
     private final ArrayList<Task> tasks;
@@ -30,6 +31,10 @@ class TaskList {
 
     public void markTaskUndone(int index) {
         this.tasks.get(index).markUndone();
+    }
+
+    public List<Task> getTasks() {
+        return new ArrayList<>(tasks);
     }
 
     public ArrayList<Task> findTasks(String keyword) {
