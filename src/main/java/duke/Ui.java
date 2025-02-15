@@ -1,141 +1,150 @@
 package duke;
 
 import java.util.ArrayList;
-import java.util.Scanner;
 
 /**
- * Represents a Command Handler
+ * UI class
  */
 public class Ui {
-    private final Scanner scanner;
-
-    public Ui() {
-        this.scanner = new Scanner(System.in);
-    }
 
     /**
-     * Returns the welcome message.
-     * @param name the name of the chatbot.
-     * @return a welcome string.
-     */
-    public String getWelcomeMessage(String name) {
-        return "Hello! I'm " + name + "\n";
-    }
-
-    /**
-     * Returns a message to indicate that no previous data was found.
-     * @return a data load message.
-     */
-    public String getDataLoadMessage() {
-        return "No existing data file found. Starting with an empty task list.";
-    }
-
-    /**
-     * Returns the goodbye message.
-     * @return a goodbye string.
-     */
-    public String getGoodbyeMessage() {
-        return "Bye. Hope to see you again soon!";
-    }
-
-    /**
-     * Returns a header for displaying the task list.
-     * @return a task list header.
-     */
-    public String getTaskListMessage() {
-        return "Here are the tasks in your list:";
-    }
-
-    /**
-     * Returns a string representation of a single task list item.
-     * @param index the index of the task.
-     * @param task the task to be displayed.
-     * @return a formatted string for the task.
-     */
-    public String getTaskListItem(int index, Task task) {
-        return (index + 1) + ". " + task;
-    }
-
-    /**
-     * Returns a message indicating that a task has been marked as done.
-     * @param task the task that was marked.
-     * @return a confirmation string.
+     * Returns a message for a task that has been marked as done.
+     *
+     * @param task The task that was marked.
+     * @return A confirmation message.
      */
     public String getTaskMarkedMessage(Task task) {
         return "Nice! I've marked this task as done:\n  " + task;
     }
 
     /**
-     * Returns a message indicating that a task has been unmarked.
-     * @param task the task that was unmarked.
-     * @return a confirmation string.
+     * Returns a message for a task that has been marked as not done.
+     *
+     * @param task The task that was unmarked.
+     * @return A confirmation message.
      */
     public String getTaskUnmarkedMessage(Task task) {
         return "OK, I've marked this task as not done yet:\n  " + task;
     }
 
     /**
-     * Returns a message indicating that a task has been added.
-     * @param task the task that was added.
-     * @param taskCount the current number of tasks.
-     * @return an added task message.
+     * Returns a message for a task that has been deleted.
+     *
+     * @param task The task that was deleted.
+     * @param remainingTasks The number of tasks remaining.
+     * @return A confirmation message.
+     */
+    public String getTaskDeletedMessage(Task task, int remainingTasks) {
+        return "Noted. I've removed this task:\n  " + task
+                + "\nNow you have " + remainingTasks + (remainingTasks == 1 ? " task" : " tasks") + " in the list.";
+    }
+
+    /**
+     * Returns a message for a task that has been added.
+     *
+     * @param task The task that was added.
+     * @param taskCount The total number of tasks now.
+     * @return A confirmation message.
      */
     public String getTaskAddedMessage(Task task, int taskCount) {
-        return "Got it. I've added this task:\n  " + task + "\nNow you have "
-                + taskCount + " tasks in the list.";
+        return "Got it. I've added this task:\n  " + task
+                + "\nNow you have " + taskCount + (taskCount == 1 ? " task" : " tasks") + " in the list.";
     }
 
     /**
-     * Returns a message indicating that a task has been deleted.
-     * @param task the task that was removed.
-     * @param taskCount the current number of tasks.
-     * @return a deleted task message.
+     * Returns a string representation of a task list item.
+     *
+     * @param index The index of the task.
+     * @param task The task to display.
+     * @return A formatted list item.
      */
-    public String getTaskDeletedMessage(Task task, int taskCount) {
-        return "Noted. I've removed this task:\n  " + task + "\nNow you have "
-                + taskCount + " tasks in the list.";
+    public String getTaskListItem(int index, Task task) {
+        return (index + 1) + ". " + task;
     }
 
     /**
-     * Returns an error message for an invalid command.
-     * @param command the command input that was not recognized.
-     * @return an error string.
+     * Returns the header message for the task list.
+     *
+     * @return A header string.
      */
-    public String getInvalidCommandError(String command) {
-        return "Hmm... I don’t recognize the command: \"" + command + "\". "
-                + "Did you mean something else? Let me know, and I'll try my best to understand!";
-    }
-
-    /**
-     * Returns an error message for invalid input.
-     * @param input the input that was invalid.
-     * @param usage a string describing the proper usage.
-     * @return an error string.
-     */
-    public String getInvalidInputError(String input, String usage) {
-        return "Oh no! That input doesn't seem right: \"" + input + "\". "
-                + "Maybe try using it like this: " + usage + "? I believe in you!";
+    public String getTaskListMessage() {
+        return "Here are the tasks in your list:";
     }
 
     /**
      * Returns an error message when a command's description is empty.
-     * @param input the command with the empty description.
-     * @return an error string.
+     *
+     * @param commandLine The command input.
+     * @return An error message.
      */
-    public String getEmptyDescriptionError(String input) {
-        return "Ah! You forgot to include a description for \"" + input + "\". "
-                + "Can you tell me a little more? I'd love to help!";
+    public String getEmptyDescriptionError(String commandLine) {
+        return "The description of '" + commandLine + "' cannot be empty.";
     }
 
     /**
-     * Returns an error message for an invalid date/time format.
-     * @param input the command that contains the date/time.
-     * @param usage a string describing the proper format.
-     * @return an error string.
+     * Returns an error message for invalid input.
+     *
+     * @param arguments The invalid argument string.
+     * @param usage The correct usage of the command.
+     * @return An error message.
      */
-    public String getInvalidDateError(String input, String usage) {
-        return "Hmm... I think there's something off with the date/time format in \"" + input + "\". "
-                + "Maybe try it like this: " + usage + "? That should work!";
+    public String getInvalidInputError(String arguments, String usage) {
+        return "Invalid input: " + arguments + "\nUsage: " + usage;
+    }
+
+    /**
+     * Returns an error message for invalid date input.
+     *
+     * @param commandLine The command that was entered.
+     * @param usage The correct usage format.
+     * @return An error message.
+     */
+    public String getInvalidDateError(String commandLine, String usage) {
+        return "Invalid date format in '" + commandLine + "'.\nUsage: " + usage;
+    }
+
+    /**
+     * Returns an error message for an unrecognized command.
+     *
+     * @param command The unrecognized command.
+     * @return An error message.
+     */
+    public String getInvalidCommandError(String command) {
+        return "I'm sorry, but I don't know what that means: " + command;
+    }
+
+    /**
+     * Returns the goodbye message.
+     *
+     * @return A goodbye message.
+     */
+    public String getGoodbyeMessage() {
+        return "Bye. Hope to see you again soon!";
+    }
+    /**
+     * Returns the welcome message which includes instructions on how to use Duke.
+     *
+     * @return The welcome message.
+     */
+    public String getHelpMessage() {
+        return """
+               Hello! I'm Atri, your friendly task manager.
+               I'm here to help you track your to-dos, deadlines, and events in a natural, conversational way.
+               How to use me:
+               - Add a task:
+                 • todo <task description>
+                 • deadline <task description> /by <yyyy-MM-dd HHmm>
+                 • event <task description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>
+               - Manage tasks:
+                 • list       : View all tasks.
+                 • mark <n>   : Mark task number n as done.
+                 • unmark <n> : Mark task number n as not done.
+                 • delete <n> : Delete task number n.
+               - Search for tasks:
+                 • find <keyword> : Find tasks with a specific keyword.
+               - Need a reminder? Just type 'help' to see all commands.
+               I'm designed to be as warm and helpful as a friend. Let's get started!
+               """;
     }
 
     /**
@@ -152,5 +161,4 @@ public class Ui {
         sb.append("\nHope that helps!");
         return sb.toString();
     }
-
 }

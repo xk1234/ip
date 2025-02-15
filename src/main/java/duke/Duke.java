@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import java.util.stream.Collectors;
 import java.util.stream.IntStream;
 
+import javafx.application.Platform;
 /**
  * Represents the main Duke application.
  * This class initializes the necessary components (Ui, Storage, TaskList)
@@ -146,6 +147,13 @@ public class Duke {
     }
 
     /**
+     * Handles the "help" command.
+     */
+    private String handleHelp() {
+        return ui.getHelpMessage();
+    }
+
+    /**
      * Checks if the given task index is valid.
      */
     private boolean isValidTaskIndex(int index) {
@@ -164,7 +172,10 @@ public class Duke {
         String arguments = (parts.length > 1) ? parts[1] : "";
 
         String response = switch (command.toLowerCase()) {
-        case "bye" -> ui.getGoodbyeMessage();
+        case "bye" -> {
+            Platform.exit();
+            yield ui.getGoodbyeMessage();
+        }
         case "list" -> IntStream.range(0, taskList.getSize())
                 .mapToObj(i -> ui.getTaskListItem(i, taskList.getTask(i)))
                 .collect(Collectors.joining("\n", ui.getTaskListMessage() + "\n", ""));
@@ -175,6 +186,7 @@ public class Duke {
         case "event" -> handleEvent(arguments, input);
         case "delete" -> handleDelete(arguments);
         case "find" -> handleFind(arguments);
+        case "help" -> handleHelp();
         default -> ui.getInvalidCommandError(input);
         };
 
@@ -188,8 +200,8 @@ public class Duke {
      */
     public String getWelcome() {
         return """
-                As a high performance robot, this is what I can do:\s
-                ✔ Add tasks:\s
+                As a high performance robot, this is what I can do:
+                ✔ Add tasks:
                    - todo <task description>
                    - deadline <task description> /by <yyyy-MM-dd HHmm>
                    - event <task description> /from <yyyy-MM-dd HHmm> /to <yyyy-MM-dd HHmm>
@@ -198,8 +210,9 @@ public class Duke {
                 ✔ Unmark tasks: unmark <task number>
                 ✔ Delete tasks: delete <task number>
                 ✔ Find tasks: find <keyword>
+                ✔ Help: help
                 ✔ Exit: bye
-                Now what do you need me to do?\uD83D\uDE0A
+                Now what do you need me to do? 😊
                 """;
     }
 
