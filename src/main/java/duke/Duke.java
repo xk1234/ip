@@ -8,14 +8,14 @@ import java.util.stream.IntStream;
 /**
  * Represents the main Duke application.
  * This class initializes the necessary components (Ui, Storage, TaskList)
- * and processes commands by returning appropriate response strings.  Uses streams where appropriate.
+ * and processes commands by returning appropriate response strings.
+ * Uses streams where appropriate.
  */
 public class Duke {
 
     private final Ui ui;
     private final Storage storage;
     private final TaskList taskList;
-    // Tracks whether Duke should exit
 
     /**
      * Constructs a new Duke instance.
@@ -30,27 +30,50 @@ public class Duke {
      * Handles the "mark" command using streams.
      */
     private String handleMark(String arguments) {
-        return handleTaskIndexOperation(arguments, "mark", taskList::markTaskDone, true);
+        return handleTaskIndexOperation(arguments, "mark", taskIndex -> {
+            taskList.markTaskDone(taskIndex);
+            Task task = taskList.getTask(taskIndex);
+            return ui.getTaskMarkedMessage(task);
+        });
     }
 
     /**
      * Handles the "unmark" command using streams.
      */
     private String handleUnmark(String arguments) {
-        return handleTaskIndexOperation(arguments, "unmark", taskList::markTaskUndone, false);
+        return handleTaskIndexOperation(arguments, "unmark", taskIndex -> {
+            taskList.markTaskUndone(taskIndex);
+            Task task = taskList.getTask(taskIndex);
+            return ui.getTaskUnmarkedMessage(task);
+        });
+    }
+
+    /**
+     * Handles the "delete" command using streams.
+     */
+    private String handleDelete(String arguments) {
+        return handleTaskIndexOperation(arguments, "delete", taskIndex -> {
+            Task taskToDelete = taskList.getTask(taskIndex); // get task before deletion
+            taskList.deleteTask(taskIndex); // delete task
+            return ui.getTaskDeletedMessage(taskToDelete, taskList.getSize());
+        });
     }
 
     /**
      * Handles task index operations (mark, unmark, delete) using a common method with streams.
+     * The lambda provided returns a string message describing the outcome.
+     *
+     * @param arguments The argument string representing the task number.
+     * @param command   The command name (e.g., "mark", "unmark", "delete").
+     * @param operation The lambda operation that performs the task index operation.
+     * @return A message indicating success or an error message if input is invalid.
      */
     private String handleTaskIndexOperation(String arguments, String command,
-                                            TaskIndexOperation operation, boolean isMark) {
+                                            TaskIndexOperation operation) {
         try {
-            int taskIndex = Integer.parseInt(arguments) - 1;
+            int taskIndex = Integer.parseInt(arguments.trim()) - 1;
             if (isValidTaskIndex(taskIndex)) {
-                operation.perform(taskIndex); // Use the provided operation
-                Task task = taskList.getTask(taskIndex);
-                return isMark ? ui.getTaskMarkedMessage(task) : ui.getTaskUnmarkedMessage(task);
+                return operation.perform(taskIndex);
             } else {
                 return ui.getInvalidInputError(arguments, command + " <task_number>");
             }
@@ -58,7 +81,6 @@ public class Duke {
             return ui.getInvalidInputError(arguments, command + " <task_number>");
         }
     }
-
 
     /**
      * Handles the "todo" command.
@@ -116,17 +138,6 @@ public class Duke {
     }
 
     /**
-     * Handles the "delete" command using streams.
-     */
-    private String handleDelete(String arguments) {
-        return handleTaskIndexOperation(arguments, "delete", taskIndex -> {
-            taskList.getTask(taskIndex); // Get task *before* deletion
-            taskList.deleteTask(taskIndex); // Delete task.
-        }, false); //dummy boolean
-    }
-
-
-    /**
      * Handles the "find" command using streams.
      */
     private String handleFind(String keyword) {
@@ -141,9 +152,9 @@ public class Duke {
         return index >= 0 && index < taskList.getSize();
     }
 
-
     /**
      * Processes the user input and returns a response.
+     *
      * @param input The user input string.
      * @return The response string.
      */
@@ -172,6 +183,9 @@ public class Duke {
         return response;
     }
 
+    /**
+     * Returns the welcome message.
+     */
     public String getWelcome() {
         return """
                 As a high performance robot, this is what I can do:\s
@@ -191,9 +205,10 @@ public class Duke {
 
     /**
      * Functional interface for task index operations.
+     * The operation returns a String message indicating the result.
      */
     @FunctionalInterface
     private interface TaskIndexOperation {
-        void perform(int taskIndex);
+        String perform(int taskIndex);
     }
 }
