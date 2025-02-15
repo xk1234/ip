@@ -8,7 +8,6 @@ import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
-import java.util.stream.Collectors;
 import java.util.stream.Stream;
 
 /**
@@ -51,28 +50,31 @@ class Storage {
         }
     }
 
-
     /**
-     * Parses a single line from the data file into a Task object.
-     * Handles different task types (T, D, E) and their respective formats.
+     * Saves all tasks in the provided TaskList to the persistent data file.
+     * Uses streams for writing the task data to the file.
      *
-     * @param line The line from the file to parse.
-     * @return The parsed Task object, or null if parsing fails.
+     * @param taskList TaskList containing the tasks to be saved.
      */
-    private Task parseTaskLine(String line) {
+    public void saveTasks(TaskList taskList) {
+        Path filePath = Paths.get(DATA_FILE_PATH);
+        Path parentDir = filePath.getParent();
+
         try {
             if (parentDir != null && !Files.exists(parentDir)) {
                 Files.createDirectories(parentDir);
             }
 
+            // Write each task's file string representation to the file
             Files.write(filePath, taskList.getTasks().stream()
                     .map(Task::toFileString)
-                    .collect(Collectors.toList()));
-
+                    .toList());
+            System.out.println("Tasks saved to " + DATA_FILE_PATH);
         } catch (IOException e) {
             System.out.println("Error saving tasks to file: " + e.getMessage());
         }
     }
+
 
     /**
      * Inner class responsible for parsing a single line from the data file
