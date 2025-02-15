@@ -20,7 +20,9 @@ class Parser {
      *          and the second element is the arguments (can be null if no arguments).
      */
     public static String[] parseCommand(String inputLine) {
-        return inputLine.split(" ", 2);
+        String[] parts = inputLine.split(" ", 2);
+        assert parts.length > 0 : "parseCommand should always return at least one element (the command)";
+        return parts;
     }
 
     /**
@@ -49,7 +51,9 @@ class Parser {
      *          element is the deadline time string.
      */
     public static String[] parseDeadlineArguments(String arguments) {
-        return arguments.split(" /by ", 2);
+        String[] parts = arguments.split(" /by ", 2);
+        assert parts.length == 2 : "parseDeadlineArguments should return exactly two parts (description and deadline)";
+        return parts;
     }
 
     /**
@@ -62,6 +66,8 @@ class Parser {
      *          the second is the from time string, and the third is the to time string.
      */
     public static String[] parseEventArguments(String arguments) {
-        return arguments.split(" /from | /to ");
+        String[] parts = arguments.split(" /from | /to ");
+        assert parts.length == 3 : "parseEventArguments should return exactly three parts (description, from, and to)";
+        return parts;
     }
 }

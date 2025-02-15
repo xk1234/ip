@@ -28,8 +28,8 @@ class Storage {
     }
 
     /**
-     * Loads tasks from the data file. Returns an empty list if the file does
-     * not exist or if loading fails.  Uses streams for file reading.
+     * Loads tasks from the data file.  Returns an empty list if the file does
+     * not exist or if loading fails. Uses streams for file reading and parsing.
      *
      * @return An ArrayList of Task objects loaded from the file.
      */
@@ -51,16 +51,15 @@ class Storage {
         }
     }
 
-    /**
-     * Saves all tasks in the provided TaskList to the data file.  Uses streams
-     * for writing.
-     *
-     * @param taskList TaskList containing the tasks to be saved.
-     */
-    public void saveTasks(TaskList taskList) {
-        Path filePath = Paths.get(DATA_FILE_PATH);
-        Path parentDir = filePath.getParent();
 
+    /**
+     * Parses a single line from the data file into a Task object.
+     * Handles different task types (T, D, E) and their respective formats.
+     *
+     * @param line The line from the file to parse.
+     * @return The parsed Task object, or null if parsing fails.
+     */
+    private Task parseTaskLine(String line) {
         try {
             if (parentDir != null && !Files.exists(parentDir)) {
                 Files.createDirectories(parentDir);
@@ -127,6 +126,7 @@ class Storage {
                 System.err.println("Error parsing task line: " + line + " - " + e.getMessage());
                 return null;
             }
+
         }
     }
 }
