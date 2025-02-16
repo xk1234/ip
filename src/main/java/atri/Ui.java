@@ -123,9 +123,9 @@ public class Ui {
     }
 
     /**
-     * Returns the welcome message which includes instructions on how to use Atri.
+     * Returns the help message which includes instructions on how to use Atri.
      *
-     * @return The welcome message.
+     * @return The help message.
      */
     public String getHelpMessage() {
         return """
