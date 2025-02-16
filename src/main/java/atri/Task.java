@@ -74,14 +74,6 @@ abstract class Task {
     public boolean isDone() {
         return isDone;
     }
-
-    public void setDescription(String description) {
-        this.description = description;
-    }
-
-    public void setDone(boolean done) {
-        isDone = done;
-    }
 }
 
 /**
@@ -163,14 +155,6 @@ class Deadline extends Task {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
         return super.toFileString() + " | " + by.format(formatter);
     }
-
-    public LocalDateTime getBy() {
-        return by;
-    }
-
-    public void setBy(LocalDateTime by) {
-        this.by = by;
-    }
 }
 
 /**
@@ -231,21 +215,5 @@ class Event extends Task {
     public String toFileString() {
         DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HHmm");
         return super.toFileString() + " | " + from.format(formatter) + " | " + to.format(formatter);
-    }
-
-    public LocalDateTime getFrom() {
-        return from;
-    }
-
-    public LocalDateTime getTo() {
-        return to;
-    }
-
-    public void setFrom(LocalDateTime from) {
-        this.from = from;
-    }
-
-    public void setTo(LocalDateTime to) {
-        this.to = to;
     }
 }
