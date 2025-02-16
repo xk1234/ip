@@ -1,4 +1,4 @@
-package duke;
+package atri;
 
 import java.util.ArrayList;
 
@@ -14,7 +14,7 @@ public class Ui {
      * @return A confirmation message.
      */
     public String getTaskMarkedMessage(Task task) {
-        return "Nice! I've marked this task as done:\n  " + task;
+        return "Great! I've marked this task as complete:\n  " + task;
     }
 
     /**
@@ -24,7 +24,7 @@ public class Ui {
      * @return A confirmation message.
      */
     public String getTaskUnmarkedMessage(Task task) {
-        return "OK, I've marked this task as not done yet:\n  " + task;
+        return "Okay, I've reset this task to not done:\n  " + task;
     }
 
     /**
@@ -36,7 +36,7 @@ public class Ui {
      */
     public String getTaskDeletedMessage(Task task, int remainingTasks) {
         return "Noted. I've removed this task:\n  " + task
-                + "\nNow you have " + remainingTasks + (remainingTasks == 1 ? " task" : " tasks") + " in the list.";
+                + "\nNow there are " + remainingTasks + (remainingTasks == 1 ? " task" : " tasks") + " remaining.";
     }
 
     /**
@@ -47,8 +47,8 @@ public class Ui {
      * @return A confirmation message.
      */
     public String getTaskAddedMessage(Task task, int taskCount) {
-        return "Got it. I've added this task:\n  " + task
-                + "\nNow you have " + taskCount + (taskCount == 1 ? " task" : " tasks") + " in the list.";
+        return "Task added! I've stored it in our list:\n  " + task
+                + "\nWe're now tracking " + taskCount + (taskCount == 1 ? " task" : " tasks") + ".";
     }
 
     /**
@@ -78,7 +78,7 @@ public class Ui {
      * @return An error message.
      */
     public String getEmptyDescriptionError(String commandLine) {
-        return "The description of '" + commandLine + "' cannot be empty.";
+        return "Oops! The description for '" + commandLine + "' can't be empty. Please provide more details.";
     }
 
     /**
@@ -89,7 +89,7 @@ public class Ui {
      * @return An error message.
      */
     public String getInvalidInputError(String arguments, String usage) {
-        return "Invalid input: " + arguments + "\nUsage: " + usage;
+        return "Hmm, I didn't understand '" + arguments + "'.\nPlease use the following format: " + usage;
     }
 
     /**
@@ -100,7 +100,7 @@ public class Ui {
      * @return An error message.
      */
     public String getInvalidDateError(String commandLine, String usage) {
-        return "Invalid date format in '" + commandLine + "'.\nUsage: " + usage;
+        return "The date in '" + commandLine + "' doesn't seem right.\nTry this format: " + usage;
     }
 
     /**
@@ -110,7 +110,7 @@ public class Ui {
      * @return An error message.
      */
     public String getInvalidCommandError(String command) {
-        return "I'm sorry, but I don't know what that means: " + command;
+        return "I'm sorry, I don't recognize the command: '" + command + "'. Could you try something else?";
     }
 
     /**
@@ -119,18 +119,19 @@ public class Ui {
      * @return A goodbye message.
      */
     public String getGoodbyeMessage() {
-        return "Bye. Hope to see you again soon!";
+        return "Goodbye! Looking forward to our next productive session.";
     }
+
     /**
-     * Returns the welcome message which includes instructions on how to use Duke.
+     * Returns the welcome message which includes instructions on how to use Atri.
      *
      * @return The welcome message.
      */
     public String getHelpMessage() {
         return """
-               Hello! I'm Atri, your friendly task manager.
-               I'm here to help you track your to-dos, deadlines, and events in a natural, conversational way.
-               How to use me:
+               Hello! I'm Atri, your high-performance assistant.
+               I'm here to help you manage your tasks with efficiency and care.
+               Here's how we can work together:
                - Add a task:
                  • todo <task description>
                  • deadline <task description> /by <yyyy-MM-dd HHmm>
@@ -141,9 +142,9 @@ public class Ui {
                  • unmark <n> : Mark task number n as not done.
                  • delete <n> : Delete task number n.
                - Search for tasks:
-                 • find <keyword> : Find tasks with a specific keyword.
-               - Need a reminder? Just type 'help' to see all commands.
-               I'm designed to be as warm and helpful as a friend. Let's get started!
+                 • find <keyword> : Locate tasks by keyword.
+               Need a reminder? Just type 'help' anytime.
+               Let's get started!
                """;
     }
 
@@ -154,11 +155,11 @@ public class Ui {
      */
     public String getMatchingTasksMessage(ArrayList<Task> tasks) {
         StringBuilder sb = new StringBuilder();
-        sb.append("Ooh! I found some tasks that match what you're looking for:");
+        sb.append("I found some tasks that match your query:");
         for (int i = 0; i < tasks.size(); i++) {
             sb.append("\n").append((i + 1)).append(". ").append(tasks.get(i));
         }
-        sb.append("\nHope that helps!");
+        sb.append("\nHope this helps!");
         return sb.toString();
     }
 }

@@ -1,4 +1,4 @@
-package duke;
+package atri;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -12,16 +12,16 @@ import javafx.application.Platform;
  * and processes commands by returning appropriate response strings.
  * Uses streams where appropriate.
  */
-public class Duke {
+public class Atri {
 
     private final Ui ui;
     private final Storage storage;
     private final TaskList taskList;
 
     /**
-     * Constructs a new Duke instance.
+     * Constructs a new Atri instance.
      */
-    public Duke() {
+    public Atri() {
         ui = new Ui();
         storage = new Storage();
         taskList = new TaskList(storage.loadTasks());
@@ -212,7 +212,7 @@ public class Duke {
                 ✔ Find tasks: find <keyword>
                 ✔ Help: help
                 ✔ Exit: bye
-                Now what do you need me to do? 😊
+                Now what do you need me to do? :)
                 """;
     }
 

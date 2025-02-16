@@ -1,4 +1,4 @@
-package duke;
+package atri;
 
 import java.io.IOException;
 import java.nio.file.Files;

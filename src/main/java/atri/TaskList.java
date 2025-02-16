@@ -1,4 +1,4 @@
-package duke;
+package atri;
 import java.util.ArrayList;
 import java.util.List;
 

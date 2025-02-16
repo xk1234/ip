@@ -32,7 +32,7 @@ dependencies {
 }
 
 application {
-    mainClass.set("duke.Launcher")
+    mainClass.set("atri.Launcher")
 }
 
 test {
