@@ -54,10 +54,18 @@ test {
 //}
 
 shadowJar {
-    archiveBaseName = "duke"
+    archiveBaseName = "atri"
     archiveClassifier = null
 }
 
 run{
     standardInput = System.in
+}
+
+jar {
+    manifest {
+        attributes(
+                'Main-Class': 'atri.Launcher'
+        )
+    }
 }
