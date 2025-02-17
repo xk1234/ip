@@ -13,9 +13,9 @@ then
 fi
 
 # delete data file from previous run if it exists
-if [ -e "./data/duke.txt" ]
+if [ -e "./data/atri.txt" ]
 then
-    rm "./data/duke.txt"
+    rm "./data/atri.txt"
 fi
 
 # compile the code into the bin folder, terminates if error occurred

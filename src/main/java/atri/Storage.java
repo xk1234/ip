@@ -15,7 +15,7 @@ import java.util.stream.Stream;
  * separation of concerns.
  */
 class Storage {
-    private static final String DATA_FILE_PATH = "./data/duke.txt";
+    private static final String DATA_FILE_PATH = "./data/atri.txt";
     private final TaskParser taskParser; // Dependency Injection
 
     /**
